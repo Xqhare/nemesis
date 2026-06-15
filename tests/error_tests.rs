@@ -129,3 +129,23 @@ fn test_error_collection() {
 
     assert!(collection.into_result().is_err());
 }
+
+use nemesis::NemesisResultExt;
+
+#[test]
+fn test_result_ext() {
+    let res: Result<(), NemesisError> = Err(NemesisError::new("Origin", io::Error::new(io::ErrorKind::Other, "err")));
+    let annotated = res.add_ctx("context string").add_source("Athena");
+
+    assert!(annotated.is_err());
+    let err = annotated.unwrap_err();
+    assert_eq!(err.source_name(), "Athena");
+    
+    let mut iter = err.walk_chain();
+    let step1 = iter.next().unwrap();
+    assert!(step1.contexts().is_empty());
+    
+    let step2 = iter.next().unwrap();
+    assert_eq!(step2.source_name(), "Origin");
+    assert_eq!(step2.contexts(), &["context string".to_string()]);
+}

@@ -176,3 +176,21 @@ impl fmt::Display for NemesisCollection {
         Ok(())
     }
 }
+
+pub trait NemesisResultExt<T, E> {
+    fn add_ctx(self, ctx: impl Into<String>) -> Result<T, NemesisError>;
+    fn add_source(self, source: &'static str) -> Result<T, NemesisError>;
+}
+
+impl<T, E> NemesisResultExt<T, E> for Result<T, E>
+where
+    E: Into<NemesisError>,
+{
+    fn add_ctx(self, ctx: impl Into<String>) -> Result<T, NemesisError> {
+        self.map_err(|e| e.into().add_ctx(ctx))
+    }
+
+    fn add_source(self, source: &'static str) -> Result<T, NemesisError> {
+        self.map_err(|e| e.into().add_source(source))
+    }
+}
