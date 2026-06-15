@@ -49,6 +49,21 @@ impl NemesisError {
             payload: NemesisPayload::Nested(Box::new(self)),
         }
     }
+
+    pub fn leaf_error(&self) -> &(dyn std::error::Error + Send + Sync + 'static) {
+        let mut current = self;
+        while let NemesisPayload::Nested(ref cause) = current.payload {
+            current = cause;
+        }
+        match &current.payload {
+            NemesisPayload::Leaf(err) => err.as_ref(),
+            NemesisPayload::Nested(_) => unreachable!(),
+        }
+    }
+
+    pub fn downcast_ref<T: std::error::Error + 'static>(&self) -> Option<&T> {
+        self.leaf_error().downcast_ref::<T>()
+    }
 }
 
 impl fmt::Display for NemesisError {
@@ -57,4 +72,11 @@ impl fmt::Display for NemesisError {
     }
 }
 
-impl std::error::Error for NemesisError {}
+impl std::error::Error for NemesisError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match &self.payload {
+            NemesisPayload::Leaf(err) => Some(err.as_ref()),
+            NemesisPayload::Nested(cause) => Some(cause.as_ref()),
+        }
+    }
+}

@@ -30,3 +30,24 @@ fn test_add_ctx_and_source() {
         _ => panic!("Expected Nested payload"),
     }
 }
+
+#[test]
+fn test_downcast_and_leaf() {
+    let io_err = io::Error::new(io::ErrorKind::NotFound, "file not found");
+    let err = NemesisError::new("Origin", io_err)
+        .add_ctx("ctx")
+        .add_source("Athena");
+
+    // std::error::Error::source should return the payload source
+    use std::error::Error;
+    assert!(err.source().is_some());
+
+    // leaf_error should traverse to the root cause
+    let leaf = err.leaf_error();
+    assert_eq!(leaf.to_string(), "file not found");
+
+    // downcast_ref should downcast to std::io::Error
+    let io_downcast = err.downcast_ref::<io::Error>();
+    assert!(io_downcast.is_some());
+    assert_eq!(io_downcast.unwrap().kind(), io::ErrorKind::NotFound);
+}
