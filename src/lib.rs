@@ -27,7 +27,7 @@
 )]
 
 mod error;
-pub use error::{NemesisError, NemesisPayload, NemesisChainIter};
+pub use error::{NemesisError, NemesisPayload, NemesisChainIter, NemesisCollection};
 
 /// Adds two numbers
 pub fn add(left: u64, right: u64) -> u64 {

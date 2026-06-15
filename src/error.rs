@@ -125,3 +125,54 @@ impl std::error::Error for NemesisError {
         }
     }
 }
+
+#[derive(Debug)]
+pub struct NemesisCollection {
+    name: String,
+    errors: Vec<NemesisError>,
+}
+
+impl NemesisCollection {
+    pub fn new(name: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            errors: Vec::new(),
+        }
+    }
+
+    pub fn push(&mut self, err: impl Into<NemesisError>) {
+        self.errors.push(err.into());
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.errors.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.errors.len()
+    }
+
+    pub fn into_result(self) -> Result<(), Self> {
+        if self.errors.is_empty() {
+            Ok(())
+        } else {
+            Err(self)
+        }
+    }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, NemesisError> {
+        self.errors.iter()
+    }
+}
+
+impl std::error::Error for NemesisCollection {}
+
+impl fmt::Display for NemesisCollection {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Error collection '{}':", self.name)?;
+        for err in &self.errors {
+            err.format_with_indent(f, 2)?;
+        }
+        Ok(())
+    }
+}

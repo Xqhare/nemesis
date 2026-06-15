@@ -91,3 +91,41 @@ fn test_display_format() {
                     \x20\x20\x20\x20\x20\x20Source: Origin\n";
     assert_eq!(formatted, expected);
 }
+
+use nemesis::NemesisCollection;
+
+#[test]
+fn test_error_collection() {
+    let mut collection = NemesisCollection::new("startup");
+    assert!(collection.is_empty());
+    assert_eq!(collection.len(), 0);
+    assert!(collection.into_result().is_ok());
+
+    let io_err = io::Error::new(io::ErrorKind::NotFound, "file not found");
+    let err1 = NemesisError::new("Athena", io_err);
+    
+    let format_err = io::Error::new(io::ErrorKind::InvalidData, "invalid data");
+    let err2 = NemesisError::new("Talos", format_err);
+
+    let mut collection = NemesisCollection::new("startup");
+    collection.push(err1);
+    collection.push(err2);
+
+    assert!(!collection.is_empty());
+    assert_eq!(collection.len(), 2);
+
+    let mut iter = collection.iter();
+    assert_eq!(iter.next().unwrap().source_name(), "Athena");
+    assert_eq!(iter.next().unwrap().source_name(), "Talos");
+    assert!(iter.next().is_none());
+
+    let formatted = format!("{}", collection);
+    let expected = "Error collection 'startup':\n\
+                    \x20\x20Error: file not found\n\
+                    \x20\x20\x20\x20Source: Athena\n\
+                    \x20\x20Error: invalid data\n\
+                    \x20\x20\x20\x20Source: Talos\n";
+    assert_eq!(formatted, expected);
+
+    assert!(collection.into_result().is_err());
+}
