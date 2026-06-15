@@ -84,8 +84,8 @@ fn test_display_format() {
 
     let formatted = format!("{}", err);
     let expected = "Error: file not found\n\
-                      Context: Loading config file during startup\n\
-                      Source: Athena\n\
+                    \x20\x20Context: Loading config file during startup\n\
+                    \x20\x20Source: Athena\n\
                     \x20\x20\x20\x20Error: file not found\n\
                     \x20\x20\x20\x20\x20\x20Context: Unable to open file: config.xff\n\
                     \x20\x20\x20\x20\x20\x20Source: Origin\n";
