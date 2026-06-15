@@ -36,6 +36,19 @@ impl NemesisError {
     pub fn payload(&self) -> &NemesisPayload {
         &self.payload
     }
+
+    pub fn add_ctx(mut self, ctx: impl Into<String>) -> Self {
+        self.context.push(ctx.into());
+        self
+    }
+
+    pub fn add_source(self, source: &'static str) -> Self {
+        Self {
+            source,
+            context: Vec::new(),
+            payload: NemesisPayload::Nested(Box::new(self)),
+        }
+    }
 }
 
 impl fmt::Display for NemesisError {
