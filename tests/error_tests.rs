@@ -51,3 +51,25 @@ fn test_downcast_and_leaf() {
     assert!(io_downcast.is_some());
     assert_eq!(io_downcast.unwrap().kind(), io::ErrorKind::NotFound);
 }
+
+#[test]
+fn test_walk_chain() {
+    let io_err = io::Error::new(io::ErrorKind::NotFound, "file not found");
+    let err = NemesisError::new("Origin", io_err)
+        .add_ctx("context origin")
+        .add_source("Athena")
+        .add_ctx("context athena")
+        .add_source("Talos");
+
+    let mut iter = err.walk_chain();
+    let step1 = iter.next().unwrap();
+    assert_eq!(step1.source_name(), "Talos");
+    
+    let step2 = iter.next().unwrap();
+    assert_eq!(step2.source_name(), "Athena");
+    
+    let step3 = iter.next().unwrap();
+    assert_eq!(step3.source_name(), "Origin");
+    
+    assert!(iter.next().is_none());
+}

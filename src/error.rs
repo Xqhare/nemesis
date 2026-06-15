@@ -64,6 +64,29 @@ impl NemesisError {
     pub fn downcast_ref<T: std::error::Error + 'static>(&self) -> Option<&T> {
         self.leaf_error().downcast_ref::<T>()
     }
+
+    pub fn walk_chain(&self) -> NemesisChainIter<'_> {
+        NemesisChainIter { current: Some(self) }
+    }
+}
+
+pub struct NemesisChainIter<'a> {
+    current: Option<&'a NemesisError>,
+}
+
+impl<'a> Iterator for NemesisChainIter<'a> {
+    type Item = &'a NemesisError;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let prev = self.current;
+        if let Some(err) = prev {
+            self.current = match &err.payload {
+                NemesisPayload::Nested(cause) => Some(cause.as_ref()),
+                NemesisPayload::Leaf(_) => None,
+            };
+        }
+        prev
+    }
 }
 
 impl fmt::Display for NemesisError {
