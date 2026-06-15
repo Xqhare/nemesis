@@ -1,33 +1,47 @@
 use std::fmt;
 
-pub type NemesisResult<T> = Result<T, NemesisError>;
+#[derive(Debug)]
+pub enum NemesisPayload {
+    Leaf(Box<dyn std::error::Error + Send + Sync + 'static>),
+    Nested(Box<NemesisError>),
+}
 
 #[derive(Debug)]
-pub enum NemesisError {
-    Generic(String),
-    Io(std::io::Error),
+pub struct NemesisError {
+    source: &'static str,
+    context: Vec<String>,
+    payload: NemesisPayload,
+}
+
+impl NemesisError {
+    pub fn new<E>(source: &'static str, err: E) -> Self
+    where
+        E: Into<Box<dyn std::error::Error + Send + Sync + 'static>>,
+    {
+        Self {
+            source,
+            context: Vec::new(),
+            payload: NemesisPayload::Leaf(err.into()),
+        }
+    }
+
+    pub fn source_name(&self) -> &'static str {
+        self.source
+    }
+
+    pub fn contexts(&self) -> &[String] {
+        &self.context
+    }
+
+    pub fn payload(&self) -> &NemesisPayload {
+        &self.payload
+    }
 }
 
 impl fmt::Display for NemesisError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            NemesisError::Generic(msg) => write!(f, "{}", msg),
-            NemesisError::Io(err) => write!(f, "{}", err),
-        }
+        write!(f, "NemesisError from {}", self.source)
     }
 }
 
-impl std::error::Error for NemesisError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            NemesisError::Generic(_) => None,
-            NemesisError::Io(err) => Some(err),
-        }
-    }
-}
-
-impl From<std::io::Error> for NemesisError {
-    fn from(err: std::io::Error) -> Self {
-        NemesisError::Io(err)
-    }
-}
+impl std::error::Error for NemesisError {}
