@@ -1,5 +1,5 @@
-use std::io;
 use nemesis::{NemesisError, NemesisPayload};
+use std::io;
 
 #[test]
 fn test_new_leaf_error() {
@@ -8,7 +8,7 @@ fn test_new_leaf_error() {
     assert_eq!(err.source_name(), "Origin");
     assert!(err.contexts().is_empty());
     match err.payload() {
-        NemesisPayload::Leaf(_) => {},
+        NemesisPayload::Leaf(_) => {}
         _ => panic!("Expected Leaf payload"),
     }
 }
@@ -20,13 +20,16 @@ fn test_add_ctx_and_source() {
         .add_ctx("context 1")
         .add_ctx("context 2");
 
-    assert_eq!(err.contexts(), &["context 1".to_string(), "context 2".to_string()]);
+    assert_eq!(
+        err.contexts(),
+        &["context 1".to_string(), "context 2".to_string()]
+    );
 
     let nested_err = err.add_source("Athena");
     assert_eq!(nested_err.source_name(), "Athena");
     assert!(nested_err.contexts().is_empty());
     match nested_err.payload() {
-        NemesisPayload::Nested(_) => {},
+        NemesisPayload::Nested(_) => {}
         _ => panic!("Expected Nested payload"),
     }
 }
@@ -64,13 +67,13 @@ fn test_walk_chain() {
     let mut iter = err.walk_chain();
     let step1 = iter.next().unwrap();
     assert_eq!(step1.source_name(), "Talos");
-    
+
     let step2 = iter.next().unwrap();
     assert_eq!(step2.source_name(), "Athena");
-    
+
     let step3 = iter.next().unwrap();
     assert_eq!(step3.source_name(), "Origin");
-    
+
     assert!(iter.next().is_none());
 }
 
@@ -96,14 +99,14 @@ use nemesis::NemesisCollection;
 
 #[test]
 fn test_error_collection() {
-    let mut collection = NemesisCollection::new("startup");
+    let collection = NemesisCollection::new("startup");
     assert!(collection.is_empty());
     assert_eq!(collection.len(), 0);
     assert!(collection.into_result().is_ok());
 
     let io_err = io::Error::new(io::ErrorKind::NotFound, "file not found");
     let err1 = NemesisError::new("Athena", io_err);
-    
+
     let format_err = io::Error::new(io::ErrorKind::InvalidData, "invalid data");
     let err2 = NemesisError::new("Talos", format_err);
 
@@ -134,17 +137,17 @@ use nemesis::NemesisResultExt;
 
 #[test]
 fn test_result_ext() {
-    let res: Result<(), NemesisError> = Err(NemesisError::new("Origin", io::Error::new(io::ErrorKind::Other, "err")));
+    let res: Result<(), NemesisError> = Err(NemesisError::new("Origin", io::Error::other("err")));
     let annotated = res.add_ctx("context string").add_source("Athena");
 
     assert!(annotated.is_err());
     let err = annotated.unwrap_err();
     assert_eq!(err.source_name(), "Athena");
-    
+
     let mut iter = err.walk_chain();
     let step1 = iter.next().unwrap();
     assert!(step1.contexts().is_empty());
-    
+
     let step2 = iter.next().unwrap();
     assert_eq!(step2.source_name(), "Origin");
     assert_eq!(step2.contexts(), &["context string".to_string()]);
