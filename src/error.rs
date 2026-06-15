@@ -199,7 +199,9 @@ impl NemesisError {
     /// assert_eq!(sources, vec!["app::load_config", "filesystem"]);
     /// ```
     pub fn walk_chain(&self) -> NemesisChainIter<'_> {
-        NemesisChainIter { current: Some(self) }
+        NemesisChainIter {
+            current: Some(self),
+        }
     }
 
     /// Formats this error hierarchy with a specified base indentation level.
@@ -209,7 +211,11 @@ impl NemesisError {
     /// # Errors
     ///
     /// Returns a formatting error if writing to the formatter fails.
-    pub fn format_with_indent(&self, f: &mut fmt::Formatter<'_>, base_indent: usize) -> fmt::Result {
+    pub fn format_with_indent(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        base_indent: usize,
+    ) -> fmt::Result {
         let pad = " ".repeat(base_indent);
         let detail_pad = " ".repeat(base_indent + 2);
 
@@ -441,4 +447,3 @@ where
         self.map_err(|e| e.into().add_source(source))
     }
 }
-

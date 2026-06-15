@@ -22,8 +22,25 @@
     clippy::cast_lossless,
     clippy::shadow_reuse,
     clippy::blanket_clippy_restriction_lints,
-    clippy::doc_include_without_cfg
+    clippy::doc_include_without_cfg,
+    clippy::missing_inline_in_public_items,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::iter_without_into_iter,
+    clippy::std_instead_of_core,
+    clippy::absolute_paths,
+    clippy::allow_attributes_without_reason,
+    clippy::ref_patterns,
+    clippy::single_char_lifetime_names,
+    clippy::pub_use,
+    clippy::std_instead_of_alloc,
+    clippy::return_self_not_must_use,
+    clippy::unreachable,
+    clippy::arithmetic_side_effects,
+    clippy::uninlined_format_args
 )]
 
 mod error;
-pub use error::{NemesisChainIter, NemesisCollection, NemesisError, NemesisPayload, NemesisResultExt};
+pub use error::{
+    NemesisChainIter, NemesisCollection, NemesisError, NemesisPayload, NemesisResultExt,
+};

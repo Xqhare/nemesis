@@ -1,10 +1,5 @@
 # Nemesis
 
-TODO:
-
-- Consider ArgosCI integration
-- Consider needed dependencies in `Cargo.toml`
-
 The error handling crate for my ecosystem
 
 It follows my "All code written by me or part of rust's standard library and libc" philosophy.
@@ -13,12 +8,6 @@ You can learn more about that [here](https://blog.xqhare.net/posts/why_solve_pro
 ## Features
 
 - _**No dependencies**_: All code is written by me or part of std.
-
-## Environment
-
-Nemesis expects the environment to provide:
-
-- `ls` UNIX command
 
 ## Naming
 
