@@ -3,7 +3,7 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::all)]
 #![warn(clippy::restriction)]
-#![expect(
+#![allow(
     clippy::missing_docs_in_private_items,
     clippy::print_stdout,
     clippy::implicit_return,
@@ -22,8 +22,7 @@
     clippy::cast_lossless,
     clippy::shadow_reuse,
     clippy::blanket_clippy_restriction_lints,
-    clippy::doc_include_without_cfg,
-    reason = "Ignored warnings"
+    clippy::doc_include_without_cfg
 )]
 
 mod error;
