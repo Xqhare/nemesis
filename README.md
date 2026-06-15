@@ -24,14 +24,45 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-Nemesis = { git = "https://github.com/xqhare/nemesis" }
+nemesis = { git = "https://github.com/xqhare/nemesis" }
 ```
 
-### Example
+### Example Usage
+
+Here is a simple example showing how to nest errors, add contexts, print them, walk the error layers, and downcast to the leaf error:
 
 ```rust
+use std::io;
+use nemesis::{NemesisError, NemesisResultExt};
 
+fn read_config(path: &str) -> Result<String, NemesisError> {
+    std::fs::read_to_string(path).map_err(|err| {
+        NemesisError::new("Origin", err).add_ctx(format!("Failed to read file: {path}"))
+    })
+}
+
+fn load_config() -> Result<String, NemesisError> {
+    read_config("config.xff")
+        .add_source("Athena")
+        .add_ctx("Loading subsystem config during startup")
+}
+
+fn main() {
+    if let Err(err) = load_config() {
+        // Print formatted nested error hierarchy
+        eprintln!("{}", err);
+
+        // Programmatic check: downcast to leaf standard error
+        if let Some(io_err) = err.downcast_ref::<io::Error>() {
+            if io_err.kind() == io::ErrorKind::NotFound {
+                eprintln!("Configuration file not found.");
+            }
+        }
+    }
+}
 ```
+
+For a complete overview of all APIs (including walking error chains and using `NemesisCollection`), see the runnable example under [examples/usage.rs](examples/usage.rs).
 
 ## License
 
