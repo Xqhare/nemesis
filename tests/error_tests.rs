@@ -73,3 +73,21 @@ fn test_walk_chain() {
     
     assert!(iter.next().is_none());
 }
+
+#[test]
+fn test_display_format() {
+    let io_err = io::Error::new(io::ErrorKind::NotFound, "file not found");
+    let err = NemesisError::new("Origin", io_err)
+        .add_ctx("Unable to open file: config.xff")
+        .add_source("Athena")
+        .add_ctx("Loading config file during startup");
+
+    let formatted = format!("{}", err);
+    let expected = "Error: file not found\n\
+                      Context: Loading config file during startup\n\
+                      Source: Athena\n\
+                    \x20\x20\x20\x20Error: file not found\n\
+                    \x20\x20\x20\x20\x20\x20Context: Unable to open file: config.xff\n\
+                    \x20\x20\x20\x20\x20\x20Source: Origin\n";
+    assert_eq!(formatted, expected);
+}

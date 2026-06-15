@@ -68,6 +68,28 @@ impl NemesisError {
     pub fn walk_chain(&self) -> NemesisChainIter<'_> {
         NemesisChainIter { current: Some(self) }
     }
+
+    pub fn format_with_indent(&self, f: &mut fmt::Formatter<'_>, base_indent: usize) -> fmt::Result {
+        let pad = " ".repeat(base_indent);
+        let detail_pad = " ".repeat(base_indent + 2);
+
+        let error_msg = match &self.payload {
+            NemesisPayload::Nested(_) => self.leaf_error().to_string(),
+            NemesisPayload::Leaf(err) => err.to_string(),
+        };
+
+        writeln!(f, "{}Error: {}", pad, error_msg)?;
+        for ctx in &self.context {
+            writeln!(f, "{}Context: {}", detail_pad, ctx)?;
+        }
+        writeln!(f, "{}Source: {}", detail_pad, self.source)?;
+
+        if let NemesisPayload::Nested(ref cause) = self.payload {
+            cause.format_with_indent(f, base_indent + 4)?;
+        }
+
+        Ok(())
+    }
 }
 
 pub struct NemesisChainIter<'a> {
@@ -91,7 +113,7 @@ impl<'a> Iterator for NemesisChainIter<'a> {
 
 impl fmt::Display for NemesisError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "NemesisError from {}", self.source)
+        self.format_with_indent(f, 0)
     }
 }
 
