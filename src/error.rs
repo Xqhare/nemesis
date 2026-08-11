@@ -101,6 +101,9 @@ impl NemesisError {
 
     /// Adds a context string to the current error level and returns the modified error.
     ///
+    /// Use this function to chain multiple context strings.
+    /// Consider using [`push_ctx`] otherwise.
+    ///
     /// # Examples
     ///
     /// ```
@@ -116,9 +119,30 @@ impl NemesisError {
         self
     }
 
+    /// Adds a context string to the current error level.
+    ///
+    /// If you want to chain multiple context strings, use the [`add_ctx`] method instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nemesis::NemesisError;
+    ///
+    /// let mut err = NemesisError::new("network", "connection reset");
+    /// err.push_ctx("failed fetching user profile");
+    /// err.push_ctx("retry attempt 3");
+    /// assert_eq!(err.contexts().len(), 2);
+    /// ```
+    pub fn push_ctx(&mut self, ctx: impl Into<String>) {
+        self.context.push(ctx.into());
+    }
+
     /// Wraps the current error as a nested error with a new static source name.
     ///
     /// This is useful when bubbling an error up to a higher-level module or component.
+    ///
+    /// Use this function to chain multiple nested errors.
+    /// Consider using [`add_source`] otherwise.
     ///
     /// # Examples
     ///
@@ -135,6 +159,25 @@ impl NemesisError {
             context: Vec::new(),
             payload: NemesisPayload::Nested(Box::new(self)),
         }
+    }
+
+    /// Wraps the current error as a nested error with a new static source name.
+    ///
+    /// This is useful when bubbling an error up to a higher-level module or component.
+    ///
+    /// If you want to chain multiple nested errors, use the [`add_source`] method instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nemesis::NemesisError;
+    ///
+    /// let mut err = NemesisError::new("filesystem", "permission denied");
+    /// err.push_source("app::load_config");
+    /// assert_eq!(err.source_name(), "app::load_config");
+    /// ```
+    pub fn push_source(&mut self, source: &'static str) {
+        self.source = source;
     }
 
     /// Traverses the entire nested error chain to retrieve a reference to the root leaf error.
@@ -262,7 +305,11 @@ impl<'a> Iterator for NemesisChainIter<'a> {
 
 impl fmt::Display for NemesisError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.format_with_indent(f, 0)
+        if f.alternate() {
+            self.format_with_indent(f, 1)
+        } else {
+            self.format_with_indent(f, 0)
+        }
     }
 }
 
