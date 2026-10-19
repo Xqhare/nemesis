@@ -16,6 +16,8 @@ pub enum NemesisPayload {
 
 /// A structured error representation in the Nemesis ecosystem.
 ///
+/// To construct a `NemesisError`, use the [`NemesisError::new`] method for any `std::Error`.
+///
 /// `NemesisError` captures:
 /// - A static string slice denoting the source (e.g., file location, component, or system name).
 /// - An accumulated list of context strings.
